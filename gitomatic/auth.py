@@ -7,12 +7,14 @@ import configuration
 
 
 def upload_pack(repo):
-    p = subprocess.Popen(['/usr/bin/git-upload-pack', repo])
+    repo_path = os.path.join('~/.gitomatic/repos', repo)
+    p = subprocess.Popen(['/usr/bin/git-upload-pack', repo_path])
     return p.wait()
 
 
 def receive_pack(repo):
-    p = subprocess.Popen(['/usr/bin/git-receive-pack', repo])
+    repo_path = os.path.join('~/.gitomatic/repos', repo)
+    p = subprocess.Popen(['/usr/bin/git-receive-pack', repo_path])
     return p.wait()
 
 
