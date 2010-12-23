@@ -15,32 +15,40 @@ def init(args):
 
     if not os.path.exists(os.path.join(home_path, '.ssh')):
         print "Creating ~/.ssh path"
-        os.mkdir(os.path.join(home_path, '.ssh'), 700)
+        os.mkdir(os.path.join(home_path, '.ssh'), 0o700)
+        os.chown(os.path.join(home_path, '.ssh'), os.geteuid(), os.getegid())
 
     # Create gitomatic path
     if not os.path.exists(os.path.join(home_path, '.gitomatic')):
         print "Creating ~/.gitomatic/ path ..."
         os.mkdir(os.path.join(home_path, '.gitomatic'))
+        os.chown(os.path.join(home_path, '.gitomatic'),
+                 os.geteuid(), os.getegid())
 
     # Create gitomatic key path.
     if not os.path.exists(os.path.join(home_path, '.gitomatic/keys')):
         print "Creating ~/.gitomatic/keys path ..."
         os.mkdir(os.path.join(home_path, '.gitomatic/keys'))
+        os.chown(os.path.join(home_path, '.gitomatic/keys'),
+                 os.geteuid(), os.getegid())
 
     # Create config path
     if not os.path.exists(os.path.join(home_path, '.gitomatic/conf.d')):
         print "Creating ~/.gitomatic/conf.d path ..."
         os.mkdir(os.path.join(home_path, '.gitomatic/conf.d'))
+        os.chown(os.path.join(home_path, '.gitomatic/conf.d'),
+                 os.geteuid(), os.getegid())
 
     # Create repos path
     if not os.path.exists(os.path.join(home_path, '.gitomatic/repos')):
         print "Creating ~/.gitomatic/repos path ..."
         os.mkdir(os.path.join(home_path, '.gitomatic/repos'))
+        os.chown(os.path.join(home_path, '.gitomatic/repos'),
+                 os.geteuid(), os.getegid())
 
     # Create global config.
     config = configobj.ConfigObj(
         os.path.join(home_path, '.gitomatic/conf.d/000-global'))
-    config['permissions'] = {}
     config.write()
 
 
@@ -180,6 +188,7 @@ def update_authorized_keys():
 
     # Write authorized_keys
     fd = open(os.path.join(home_path, '.ssh', 'authorized_keys'), 'w')
+    os.fchmod(fd.fileno(), 0o600)
     fd.write(authorized_keys)
     fd.close()
 
