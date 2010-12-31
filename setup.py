@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='gitomatic',
-    version='0.3.5',
+    version='0.3.6',
     description='Git management tool',
     author='Jorge Eduardo Cardona',
     author_email='jorge.cardona@nuagehq.com',
@@ -10,6 +10,7 @@ setup(
     keywords="git",
     url="http://pypi.python.org/pypi/gitomatic/",
     packages=find_packages(),
+    test_suite='test',
     entry_points={
         'console_scripts': [
             'gitomatic = gitomatic.main:main',

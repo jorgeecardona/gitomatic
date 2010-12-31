@@ -1,12 +1,10 @@
 import logging
-import re
 import os
 import argparse
 import configobj
-import subprocess
-import shutil
-from hashlib import sha1
-import configuration
+import repo
+import perms
+import keys
 
 
 def init(args):
@@ -53,37 +51,14 @@ def init(args):
 
 
 def add_repo(args):
-    # Add a new repo.
-    home_path = os.environ['HOME']
-    repo_path = os.path.join(
-        home_path, '.gitomatic/repos', args.repo)
-
-    if os.path.exists(repo_path):
-        logging.error("Duplicated repo.")
-        exit(2)
-
-    # Create repo.
-    p = subprocess.Popen(['git', 'init', '--bare', repo_path])
-    p.wait()
+    return repo.add(args.repo)
 
 
 def remove_repo(args):
-    # Remove a repo.
-    home_path = os.environ['HOME']
-    repo_path = os.path.join(
-        home_path, '.gitomatic/repos', args.repo)
-
-    if not os.path.exists(repo_path):
-        logging.error("Repo not found.")
-        exit(2)
-
-    # Remove path.
-    shutil.rmtree(repo_path)
+    return repo.remove(args.repo)
 
 
 def add_key(args):
-    # Add a new key.
-
     # Read key.
     if args.key is not None:
         key = args.key
@@ -95,116 +70,19 @@ def add_key(args):
         logging.error("Please specify a key.")
         exit(2)
 
-    hash_key = sha1(key).hexdigest()
-    print "SHA1 of key: %s" % (hash_key, )
-
-    basename = '%s:%s' % (args.username, hash_key)
-
-    home_path = os.environ['HOME']
-    key_path = os.path.join(
-        home_path, '.gitomatic/keys', basename)
-
-    # Write key
-    fd = open(key_path, 'w')
-    fd.write(key)
-    fd.close()
-
-    # Update Authorized Keys
-    update_authorized_keys()
+    return keys.add(args.username, key)
 
 
 def remove_key(args):
-    # Get filename
-    basename = '%s:%s' % (args.username, args.hash_key)
-    home_path = os.environ['HOME']
-    key_path = os.path.join(
-        home_path, '.gitomatic/keys', basename)
-
-    # Read key.
-    fd = open(key_path)
-    data = fd.read()
-    fd.close()
-
-    if args.hash_key != sha1(data).hexdigest():
-        logging.error("Invalid hash key")
-        exit(2)
-
-    # Remove path
-    os.remove(key_path)
-
-    # Update Authorized Keys
-    update_authorized_keys()
-
-
-def update_authorized_keys():
-
-    home_path = os.environ['HOME']
-
-    # Build gitolite section.
-    gitolite_section = ['### Start Gitolite ###']
-
-    # Gather keys.
-    filenames = os.walk(os.path.join(home_path, '.gitomatic/keys')).next()[2]
-    for filename in filenames:
-        # Userbame and hash_key
-        username, hash_key = filename.split(':')
-
-        # Read Key
-        fd = open(os.path.join(home_path, '.gitomatic/keys', filename))
-        key = fd.read()
-        fd.close()
-
-        # Create entry
-        cmd = '/usr/local/bin/gitomatic-auth %s' % (username, )
-        gitolite_section.append(
-            "command=\"%s\",no-port-forwarding,no-X11-forwarding,"\
-            "no-agent-forwarding,no-pty %s" % (cmd, key))
-
-    #  Gitolite final section
-    gitolite_section.append('### End Gitolite ###')
-    gitolite_section = "\n\n".join(gitolite_section)
-
-    # Read authorized_keys
-    try:
-        fd = open(os.path.join(home_path, '.ssh', 'authorized_keys'))
-        authorized_keys = fd.read()
-        fd.close()
-    except IOError:
-        authorized_keys = ''
-
-    # Extract gitolite section.
-    regex = re.compile(
-        '(.*)### Start Gitolite ###.*?### End Gitolite ###(.*).*',
-        re.DOTALL | re.MULTILINE)
-    res = regex.match(authorized_keys)
-
-    if res:
-        # Remove gitolite keys.
-        authorized_keys = list(res.groups())
-        authorized_keys.insert(1, gitolite_section)
-        authorized_keys = "".join(authorized_keys)
-    else:
-        authorized_keys += "\n" + gitolite_section
-
-    # Write authorized_keys
-    fd = open(os.path.join(home_path, '.ssh', 'authorized_keys'), 'w')
-    os.fchmod(fd.fileno(), 0o600)
-    fd.write(authorized_keys)
-    fd.close()
+    return keys.remove(args.username, args.hash_key)
 
 
 def add_perm(args):
-    # Add a permission.
-    actual = configuration.read_permission(args.repo, args.username)
-    new_perm = actual.union(set(args.perm))
-    configuration.write_permission(args.repo, args.username, new_perm)
+    return perms.add(args.repo, args.username, args.perm)
 
 
 def remove_perm(args):
-    # Remove a permission.
-    actual = configuration.read_permission(args.repo, args.username)
-    new_perm = actual - set(args.perm)
-    configuration.write_permission(args.repo, args.username, new_perm)
+    return perms.remove(args.repo, args.username, args.perm)
 
 
 def main():
