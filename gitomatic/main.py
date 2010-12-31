@@ -78,11 +78,11 @@ def remove_key(args):
 
 
 def add_perm(args):
-    return perms.add(args.repo, args.username, args.perm)
+    return perms.add(args.username, args.repo, args.perm)
 
 
 def remove_perm(args):
-    return perms.remove(args.repo, args.username, args.perm)
+    return perms.remove(args.username, args.repo, args.perm)
 
 
 def main():
