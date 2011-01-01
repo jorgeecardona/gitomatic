@@ -42,25 +42,25 @@ class Gitomatic(object):
         # Create gitomatic path.
         if not os.path.exists(self.gitomatic_path):
             print "Creating %s ..." % (self.gitomatic_path, )
-            os.mkdir(self.gitomatic_path, 0o770)
+            os.mkdir(self.gitomatic_path, 0o750)
             os.chown(self.gitomatic_path, os.geteuid(), os.getegid())
 
         # Create gitomatic keys path.
         if not os.path.exists(self.keys_path):
             print "Creating %s ..." % (self.keys_path, )
-            os.mkdir(self.keys_path, 0o660)
+            os.mkdir(self.keys_path, 0o750)
             os.chown(self.keys_path, os.geteuid(), os.getegid())
 
         # Create gitomatic conf path.
         if not os.path.exists(self.conf_path):
             print "Creating %s ..." % (self.conf_path, )
-            os.mkdir(self.conf_path, 0o660)
+            os.mkdir(self.conf_path, 0o750)
             os.chown(self.conf_path, os.geteuid(), os.getegid())
 
         # Create gitomatic repos path.
         if not os.path.exists(self.repos_path):
             print "Creating %s ..." % (self.repos_path, )
-            os.mkdir(self.repos_path, 0o660)
+            os.mkdir(self.repos_path, 0o750)
             os.chown(self.repos_path, os.geteuid(), os.getegid())
 
     def repo_add(self, name):
@@ -108,7 +108,7 @@ class Gitomatic(object):
         basename = '%s:%s' % (username, hash_)
 
         # Get Key path.
-        key_path = os.path.joine(self.keys_path, basename)
+        key_path = os.path.join(self.keys_path, basename)
 
         # Write key
         fd = open(key_path, 'w')
@@ -127,7 +127,7 @@ class Gitomatic(object):
         basename = '%s:%s' % (username, hash_)
 
         # Get Key path.
-        key_path = os.path.joine(self.keys_path, basename)
+        key_path = os.path.join(self.keys_path, basename)
 
         # Read key.
         fd = open(key_path)

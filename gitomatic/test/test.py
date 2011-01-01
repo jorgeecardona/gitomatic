@@ -35,6 +35,7 @@ class GitomaticTestCase(unittest.TestCase):
 
     def test_add_repo(self):
 
+        self.gitomatic.initialize()
         self.gitomatic.repo_add('test.git')
 
         self.assertTrue(path.exists(path.join(
@@ -43,6 +44,7 @@ class GitomaticTestCase(unittest.TestCase):
     def test_delete_repo(self):
 
         # Add repo
+        self.gitomatic.initialize()
         self.gitomatic.repo_add('test.git')
         self.assertTrue(path.exists(path.join(
             self._directory, '.gitomatic/repos/test.git')))
@@ -51,4 +53,15 @@ class GitomaticTestCase(unittest.TestCase):
         self.gitomatic.repo_delete('test.git')
         self.assertTrue(not path.exists(path.join(
             self._directory, '.gitomatic/repos/test.git')))
+
+    def test_add_key(self):
+
+        # Initialize repo.
+        self.gitomatic.initialize()
+
+        from hashlib import sha1
+        key = 'ssh-rsa asasdav asda'
+        hash_1 = sha1(key).hexdigest()
+        hash_2 = self.gitomatic.key_add('test@test.com', key)
+        self.assertEqual(hash_1, hash_2)
 
