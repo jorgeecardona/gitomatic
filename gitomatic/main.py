@@ -1,61 +1,21 @@
 import logging
-import os
 import argparse
-import configobj
-import repo
-import perms
-import keys
+from base import Gitomatic
 
 
 def init(args):
-    # Initializ the gitomatic structure.
-    home_path = os.environ['HOME']
-
-    if not os.path.exists(os.path.join(home_path, '.ssh')):
-        print "Creating ~/.ssh path"
-        os.mkdir(os.path.join(home_path, '.ssh'), 0o700)
-        os.chown(os.path.join(home_path, '.ssh'), os.geteuid(), os.getegid())
-
-    # Create gitomatic path
-    if not os.path.exists(os.path.join(home_path, '.gitomatic')):
-        print "Creating ~/.gitomatic/ path ..."
-        os.mkdir(os.path.join(home_path, '.gitomatic'))
-        os.chown(os.path.join(home_path, '.gitomatic'),
-                 os.geteuid(), os.getegid())
-
-    # Create gitomatic key path.
-    if not os.path.exists(os.path.join(home_path, '.gitomatic/keys')):
-        print "Creating ~/.gitomatic/keys path ..."
-        os.mkdir(os.path.join(home_path, '.gitomatic/keys'))
-        os.chown(os.path.join(home_path, '.gitomatic/keys'),
-                 os.geteuid(), os.getegid())
-
-    # Create config path
-    if not os.path.exists(os.path.join(home_path, '.gitomatic/conf.d')):
-        print "Creating ~/.gitomatic/conf.d path ..."
-        os.mkdir(os.path.join(home_path, '.gitomatic/conf.d'))
-        os.chown(os.path.join(home_path, '.gitomatic/conf.d'),
-                 os.geteuid(), os.getegid())
-
-    # Create repos path
-    if not os.path.exists(os.path.join(home_path, '.gitomatic/repos')):
-        print "Creating ~/.gitomatic/repos path ..."
-        os.mkdir(os.path.join(home_path, '.gitomatic/repos'))
-        os.chown(os.path.join(home_path, '.gitomatic/repos'),
-                 os.geteuid(), os.getegid())
-
-    # Create global config.
-    config = configobj.ConfigObj(
-        os.path.join(home_path, '.gitomatic/conf.d/000-global'))
-    config.write()
+    g = Gitomatic()
+    return g.initialize()
 
 
 def add_repo(args):
-    return repo.add(args.repo)
+    g = Gitomatic()
+    return g.repo_add(args.repo)
 
 
 def remove_repo(args):
-    return repo.remove(args.repo)
+    g = Gitomatic()
+    return g.repo_delete(args.repo)
 
 
 def add_key(args):
@@ -70,19 +30,23 @@ def add_key(args):
         logging.error("Please specify a key.")
         exit(2)
 
-    return keys.add(args.username, key)
+    g = Gitomatic()
+    return g.key_add(args.username, key)
 
 
 def remove_key(args):
-    return keys.remove(args.username, args.hash_key)
+    g = Gitomatic()
+    return g.key_delete(args.username, args.hash_)
 
 
 def add_perm(args):
-    return perms.add(args.username, args.repo, args.perm)
+    g = Gitomatic()
+    return g.perm_add(args.username, args.repo, args.perm)
 
 
 def remove_perm(args):
-    return perms.remove(args.username, args.repo, args.perm)
+    g = Gitomatic()
+    return g.perm_delete(args.username, args.repo, args.perm)
 
 
 def main():

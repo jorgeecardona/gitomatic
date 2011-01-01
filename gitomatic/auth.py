@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 import configuration
+from base import Gitomatic
 
 
 def upload_pack(repo):
@@ -31,6 +32,9 @@ def main():
     parser.add_argument('username')
     args = parser.parse_args()
 
+    # Get Gitomatic object.
+    g = Gitomatic()
+
     # Get ids
     username = args.username
     try:
@@ -54,12 +58,12 @@ def main():
         res = regex.match(command)
         if res:
             # Retrieve function and permissions
-            fn, perms = commands_regex[regex]
+            fn, perm = commands_regex[regex]
 
             # Check permission
-            check = check_permissions(
+            check = g.perm_check(
                 username=username,
-                perms=perms,
+                perm=perm,
                 **res.groupdict())
 
             # Call handler if check

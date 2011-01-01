@@ -11,6 +11,8 @@ class GitomaticTestCase(unittest.TestCase):
         # Change home path for a temporary one.
         self._directory = tempfile.mkdtemp()
         environ['HOME'] = self._directory
+        from gitomatic.base import Gitomatic
+        self.gitomatic = Gitomatic()
 
     def tearDown(self):
         # Delete temporary directory
@@ -18,8 +20,7 @@ class GitomaticTestCase(unittest.TestCase):
 
     def test_initialize_gitomatic(self):
 
-        from gitomatic import main
-        main.init(None)
+        self.gitomatic.initialize()
 
         self.assertTrue(path.exists(path.join(
             self._directory, '.ssh')))
@@ -30,30 +31,24 @@ class GitomaticTestCase(unittest.TestCase):
         self.assertTrue(path.exists(path.join(
             self._directory, '.gitomatic/conf.d')))
         self.assertTrue(path.exists(path.join(
-            self._directory, '.gitomatic/conf.d/000-global')))
-        self.assertTrue(path.exists(path.join(
             self._directory, '.gitomatic/repos')))
 
     def test_add_repo(self):
 
-        from gitomatic import repo
-        repo.add('test.git')
+        self.gitomatic.repo_add('test.git')
 
         self.assertTrue(path.exists(path.join(
             self._directory, '.gitomatic/repos/test.git')))
 
-    def test_remove_repo(self):
+    def test_delete_repo(self):
 
-        from gitomatic import repo
-        repo.add('test.git')
-
+        # Add repo
+        self.gitomatic.repo_add('test.git')
         self.assertTrue(path.exists(path.join(
             self._directory, '.gitomatic/repos/test.git')))
 
-        repo.remove('test.git')
+        # Delete repo
+        self.gitomatic.repo_delete('test.git')
         self.assertTrue(not path.exists(path.join(
             self._directory, '.gitomatic/repos/test.git')))
 
-
-if __name__ == '__main__':
-    unittest.main()
