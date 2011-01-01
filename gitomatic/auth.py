@@ -19,11 +19,6 @@ def receive_pack(repo):
     return p.wait()
 
 
-def check_permissions(username, perms, repo):
-    actual_perms = configuration.read_permission(repo, username)
-    return set(perms).issubset(actual_perms)
-
-
 def main():
 
     # Start Parser
