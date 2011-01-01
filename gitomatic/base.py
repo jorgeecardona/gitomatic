@@ -12,7 +12,7 @@ class Gitomatic(object):
     This class hold all the information of a gitomatic instance.
     """
 
-    def __init__(self, base_path=None, owner=None, group=None):
+    def __init__(self, base_path=None, virtualenv=None):
 
         if base_path is None:
             base_path = os.environ['HOME']
@@ -24,6 +24,12 @@ class Gitomatic(object):
         self.keys_path = os.path.join(self.gitomatic_path, 'keys')
         self.conf_path = os.path.join(self.gitomatic_path, 'conf.d')
         self.repos_path = os.path.join(self.gitomatic_path, 'repos')
+
+        # SSH Command for virtualenv.
+        if virtualenv:
+            self.command = os.path.join(virtualenv, 'bin', 'gitomatic-auth')
+        else:
+            self.command = 'gitomatic-auth'
 
         # Valid permissions in order.
         self.valid_permissions = ['', 'R', 'RW', 'RW+']
@@ -162,7 +168,7 @@ class Gitomatic(object):
             fd.close()
 
             # Create entry
-            cmd = 'gitomatic-auth %s' % (username, )
+            cmd = '$s %s' % (self.command, username, )
             gitolite_section.append(
                 "command=\"%s\",no-port-forwarding,no-X11-forwarding,"\
                 "no-agent-forwarding,no-pty %s" % (cmd, key))
@@ -265,6 +271,9 @@ class Gitomatic(object):
         return username
 
     def perm_check(self, username, repo, perm):
+        logging.error(username)
+        logging.error(repo)
+        logging.error(perm)
         # Read perm
         real_perm = self.perm_read(repo, username)
 

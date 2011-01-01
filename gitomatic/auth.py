@@ -60,11 +60,11 @@ def main():
             # Retrieve function and permissions
             fn, perm = commands_regex[regex]
 
+            # repo
+            repo = res.groupdict()['repo']
+
             # Check permission
-            check = g.perm_check(
-                username=username,
-                perm=perm,
-                **res.groupdict())
+            check = g.perm_check(username, repo, perm)
 
             # Call handler if check
             if check:
