@@ -168,7 +168,7 @@ class Gitomatic(object):
             fd.close()
 
             # Create entry
-            cmd = '$s %s' % (self.command, username, )
+            cmd = '%s %s' % (self.command, username, )
             gitolite_section.append(
                 "command=\"%s\",no-port-forwarding,no-X11-forwarding,"\
                 "no-agent-forwarding,no-pty %s" % (cmd, key))
@@ -271,9 +271,6 @@ class Gitomatic(object):
         return username
 
     def perm_check(self, username, repo, perm):
-        logging.error(username)
-        logging.error(repo)
-        logging.error(perm)
         # Read perm
         real_perm = self.perm_read(repo, username)
 
