@@ -1,4 +1,5 @@
 import re
+import tempfile
 import os
 import subprocess
 import shutil
@@ -104,6 +105,28 @@ class Gitomatic(object):
         shutil.rmtree(repo_path)
 
         return name
+
+    def repo_archive(self, name, tree='HEAD'):
+
+        # Get repo path.
+        repo_path = os.path.join(self.repos_path, name)
+
+        if not os.path.exists(repo_path):
+            raise Exception("Repo doesn't not exist.")
+
+        # Create repo.
+        p = subprocess.Popen(['git', 'archive', '--format==zip', tree],
+                             cwd=repo_path, stdout=-1, stderr=-1)
+        ret = p.wait()
+        stdout, stderr = p.communicate()
+
+        if stderr != '':
+            logging.error(stderr)
+
+        if ret != 0:
+            raise Exception("Git error.")
+
+        return stdout
 
     def key_add(self, username, key):
 
