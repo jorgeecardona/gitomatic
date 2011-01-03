@@ -91,6 +91,8 @@ class Gitomatic(object):
         if ret != 0:
             raise Exception("Git error.")
 
+        self._create_hook_skel(name)
+
         return name
 
     def repo_delete(self, name):
@@ -235,8 +237,11 @@ class Gitomatic(object):
         # Read Configuration.
         config = configobj.ConfigObj(conf_path)
 
-        if username in config:
-            return set(config[username])
+        if 'users' not in config:
+            config['users'] = {}
+
+        if username in config['users']:
+            return set(config['users'][username])
 
         return set()
 
@@ -264,7 +269,10 @@ class Gitomatic(object):
         config = configobj.ConfigObj(conf_path)
 
         # Write to file
-        config[username] = perm
+        if 'users' not in config:
+            config['users'] = {}
+
+        config['users'][username] = perm
         config.write()
 
         return set(config[username])
@@ -298,3 +306,71 @@ class Gitomatic(object):
         real_perm = self.perm_read(repo, username)
 
         return set(perm).issubset(real_perm)
+
+    def hook_add(self, repo, type, hook, name, order=0):
+
+        # Create hook structure.
+        self._create_hook_skel(repo)
+
+        # Add hook in order.
+        hook_path = os.path.join(
+            self.repos_path, repo, 'hooks', '%s.d' % (type, ), '%03d-%s' % (
+                order, name))
+
+        # Create file
+        fd = open(hook_path, 'w')
+        fd.write(hook)
+        os.fchmod(fd.fileno(), 0o750)
+        fd.close()
+
+        return hook_path
+
+    def hook_delete(self, repo, type, name, order=0):
+
+        # Create hook structure.
+        self._create_hook_skel(repo)
+
+        # Add hook in order.
+        hook_path = os.path.join(
+            self.repos_path, repo, 'hooks', '%s.d' % (type, ), '%03d-%s' % (
+                order, name))
+
+        # Delete hook
+        os.remove(hook_path)
+
+        return hook_path
+
+    def _create_hook_skel(self, name):
+
+        # Get repo path.
+        repo_path = os.path.join(self.repos_path, name)
+
+        # Create hook skel.
+        hooks_path = os.path.join(repo_path, 'hooks')
+
+        ## post-receive
+        for hook in ['post-receive']:
+            hook_path = os.path.join(hooks_path, 'post-receive')
+            hooks_path = os.path.join(hooks_path, 'post-receive.d')
+            if not os.path.exists(hooks_path):
+                print "Creating %s ..." % (hooks_path, )
+                os.mkdir(hooks_path, 0o750)
+                os.chown(hooks_path, os.geteuid(), os.getegid())
+
+            # Create base hook.
+            fd = open(hook_path, 'w')
+            fd.write(self._hook_content())
+            os.fchmod(fd.fileno(), 0o750)
+            fd.close()
+
+    def _hook_content(self):
+        return """
+cd ${0}.d
+while read oldrev newrev refname
+do
+  for i in $(find . -regex './[0-9][0-9][0-9]-.*')
+  do
+    echo $oldrev $newrev $refname | $i
+  done
+done
+"""

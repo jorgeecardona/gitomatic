@@ -49,6 +49,22 @@ def remove_perm(args):
     return g.perm_delete(args.username, args.repo, args.perm)
 
 
+def add_hook(args):
+    g = Gitomatic()
+
+    # Read hook.
+    fd = open(args.filename)
+    hook = fd.read()
+    fd.close()
+
+    return g.hook_add(args.repo, args.type, hook, args.name, args.order)
+
+
+def remove_hook(args):
+    g = Gitomatic()
+    return g.hook_delete(args.repo, args.type, args.name, args.order)
+
+
 def main():
 
     # Start Parser
@@ -102,7 +118,26 @@ def main():
     command_remove_perm.add_argument('perm')
     command_remove_perm.set_defaults(func=remove_perm)
 
-    # Set permission command.
+    # Add hook command.
+    command_hook_add = commands.add_parser('add_hook')
+    command_hook_add.add_argument('type', choices=['post-receive'])
+    command_hook_add.add_argument('repo')
+    command_hook_add.add_argument('name', help='Name used to store the hook.')
+    command_hook_add.add_argument('-f', '--filename', type=str,
+                                 help="Filename that holds the hook.")
+    command_hook_add.add_argument(
+        '--order', type=int, default=0, help='Hook apply order.')
+    command_hook_add.set_defaults(func=add_hook)
+
+    # Remove hook command.
+    command_hook_remove = commands.add_parser('remove_hook')
+    command_hook_remove.add_argument('type', choices=['post-receive'])
+    command_hook_remove.add_argument('repo')
+    command_hook_remove.add_argument('name',
+                                     help='Name used to store the hook.')
+    command_hook_remove.add_argument(
+        '--order', type=int, default=0, help='Hook apply order.')
+    command_hook_remove.set_defaults(func=remove_hook)
 
     args = parser.parse_args()
     args.func(args)
