@@ -29,9 +29,7 @@ class GitomaticTestCase(unittest.TestCase):
         self.assertTrue(path.exists(path.join(
             self._directory, '.gitomatic/keys')))
         self.assertTrue(path.exists(path.join(
-            self._directory, '.gitomatic/conf.d')))
-        self.assertTrue(path.exists(path.join(
-            self._directory, '.gitomatic/repos')))
+            self._directory, '.gitomatic/repositories')))
 
     def test_add_repo(self):
 
@@ -39,7 +37,7 @@ class GitomaticTestCase(unittest.TestCase):
         self.gitomatic.repo_add('test.git')
 
         self.assertTrue(path.exists(path.join(
-            self._directory, '.gitomatic/repos/test.git')))
+            self._directory, '.gitomatic/repositories/test.git')))
 
     def test_delete_repo(self):
 
@@ -47,12 +45,12 @@ class GitomaticTestCase(unittest.TestCase):
         self.gitomatic.initialize()
         self.gitomatic.repo_add('test.git')
         self.assertTrue(path.exists(path.join(
-            self._directory, '.gitomatic/repos/test.git')))
+            self._directory, '.gitomatic/repositories/test.git')))
 
         # Delete repo
         self.gitomatic.repo_delete('test.git')
         self.assertTrue(not path.exists(path.join(
-            self._directory, '.gitomatic/repos/test.git')))
+            self._directory, '.gitomatic/repositories/test.git')))
 
     def test_add_key(self):
 

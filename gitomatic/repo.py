@@ -1,44 +1,45 @@
-import os
 import logging
-import shutil
-import subprocess
+import os
+import git
 
 
-def add(name):
+class Repo(git.Repo):
 
-    # Add a new repo.
-    home_path = os.environ['HOME']
-    repo_path = os.path.join(
-        home_path, '.gitomatic/repos', name)
+    @classmethod
+    def init(self, path, mkdir=True, **kwargs):
+        # Create repository in bare format.
+        kwargs['bare'] = True
 
-    if os.path.exists(repo_path):
-        raise Exception("Duplicated repo")
+        # Init repo.
+        repo = super(Repo, self).init(path, mkdir, **kwargs)
 
-    # Create repo.
-    p = subprocess.Popen(['git', 'init', '--bare', repo_path],
-                         stdout=-1, stderr=-1)
-    ret = p.wait()
-    stdout, stderr = p.communicate()
-
-    if stderr != '':
-        logging.error(stderr)
-    if stdout != '':
-        logging.info(stdout)
-
-    if ret != 0:
-        raise Exception("Git error.")
-
-    return name
+        # Create hook structures.
+        repo._create_hook_structure()
 
 
-def remove(name):
-    # Remove a repo.
-    home_path = os.environ['HOME']
-    repo_path = os.path.join(
-        home_path, '.gitomatic/repos', name)
+    def _create_hook_structure(self):
+        # For every hook create a hook.d path.
+        hooks = ['post-receive']
 
-    if not os.path.exists(repo_path):
-        raise Exception("Repo doesn't not exist.")
+        for hook in hooks:
+            # Create hook path.
+            hooks_path = os.path.join(self.git_dir, 'hooks', hook + '.d')
+            if not os.path.exists(hooks_path):
+                os.mkdir(hooks_path, 0o750)
+                os.chown(hooks_path, self.owner, self.group)
 
-    # Remove path.
-    shutil.rmtree(repo_path)
+            hook_path = os.path.join(self.git_dir, 'hooks', hook)
+
+            # Replace hook for a script that calls the internal hooks.
+            fd = open(hook_path, 'w')
+            fd.write("""
+cd ${0}.d
+while read oldrev newrev refname
+do
+  for i in $(find . -regex './[0-9][0-9][0-9]-.*')
+  do
+    echo '$oldrev $newrev $refname' | $i
+  done
+done
+""")
+            fd.close()

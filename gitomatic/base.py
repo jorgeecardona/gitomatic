@@ -1,39 +1,58 @@
-import re
-import tempfile
-import os
-import subprocess
-import shutil
 import logging
-import configobj
 from hashlib import sha1
+import configobj
+import shutil
+import git
+import re
+import os
+import StringIO
 
 
 class Gitomatic(object):
-    """
-    This class hold all the information of a gitomatic instance.
-    """
 
-    def __init__(self, base_path=None, virtualenv=None):
+    def __init__(self, rc='~/.gitomatic.rc'):
 
-        if base_path is None:
-            base_path = os.environ['HOME']
+        # Try to read configuration.
+        config_path = os.path.expanduser(rc)
 
-        self.home_path = base_path
-        self.ssh_path = os.path.join(self.home_path, '.ssh')
-        self.authorized_path = os.path.join(self.ssh_path, 'authorized_keys')
-        self.gitomatic_path = os.path.join(self.home_path, '.gitomatic')
-        self.keys_path = os.path.join(self.gitomatic_path, 'keys')
-        self.conf_path = os.path.join(self.gitomatic_path, 'conf.d')
-        self.repos_path = os.path.join(self.gitomatic_path, 'repos')
+        # Read configuration.
+        configuration = configobj.ConfigObj(config_path)
 
-        # SSH Command for virtualenv.
-        if virtualenv:
-            self.command = os.path.join(virtualenv, 'bin', 'gitomatic-auth')
+        if 'global' not in configuration:
+            configuration['global'] = {}
+
+        # SSH path.
+        if 'ssh_path' in configuration['global']:
+            self.ssh_path = configuration['global']['ssh_path']
+        else:
+            self.ssh_path = os.path.expanduser('~/.ssh')
+
+        #  Gitomatic path.
+        if 'gitomatic_path' in configuration['global']:
+            self.gitomatic_path = configuration['global']['gitomatic_path']
+        else:
+            self.gitomatic_path = os.path.expanduser('~/.gitomatic')
+
+        # Repositories path.
+        if 'repositories_path' in configuration['global']:
+            self.repositories_path = \
+                                   configuration['global']['repositories_path']
+        else:
+            self.repositories_path = os.path.join(
+                self.gitomatic_path, 'repositories')
+
+        # Keys path.
+        if 'keys_path' in configuration['global']:
+            self.keys_path = configuration['global']['keys_path']
+        else:
+            self.keys_path = os.path.join(
+                self.gitomatic_path, 'keys')
+
+        # Command path.
+        if 'command' in configuration['global']:
+            self.command = configuration['global']['command']
         else:
             self.command = 'gitomatic-auth'
-
-        # Valid permissions in order.
-        self.valid_permissions = ['', 'R', 'RW', 'RW+']
 
     def initialize(self):
         """
@@ -58,47 +77,62 @@ class Gitomatic(object):
             os.mkdir(self.keys_path, 0o750)
             os.chown(self.keys_path, os.geteuid(), os.getegid())
 
-        # Create gitomatic conf path.
-        if not os.path.exists(self.conf_path):
-            print "Creating %s ..." % (self.conf_path, )
-            os.mkdir(self.conf_path, 0o750)
-            os.chown(self.conf_path, os.geteuid(), os.getegid())
-
         # Create gitomatic repos path.
-        if not os.path.exists(self.repos_path):
-            print "Creating %s ..." % (self.repos_path, )
-            os.mkdir(self.repos_path, 0o750)
-            os.chown(self.repos_path, os.geteuid(), os.getegid())
+        if not os.path.exists(self.repositories_path):
+            print "Creating %s ..." % (self.repositories_path, )
+            os.mkdir(self.repositories_path, 0o750)
+            os.chown(self.repositories_path, os.geteuid(), os.getegid())
+
+    def _repo_path(self, name):
+        if not name.endswith('.git'):
+            name += '.git'
+        return os.path.join(self.repositories_path, name)
+
+    def _get_repo(self, name):
+        return git.Repo(self._repo_path(name))
 
     def repo_add(self, name):
-        # Get repo path.
-        repo_path = os.path.join(self.repos_path, name)
 
-        if os.path.exists(repo_path):
-            raise Exception("Duplicated repo.")
+        # Get repo location
+        repo_path = self._repo_path(name)
 
-        # Create repo.
-        p = subprocess.Popen(['git', 'init', '--bare', repo_path],
-                             stdout=-1, stderr=-1)
-        ret = p.wait()
-        stdout, stderr = p.communicate()
+        # Create repo
+        repo = git.Repo.init(repo_path, bare=True)
 
-        if stderr != '':
-            logging.error(stderr)
-        if stdout != '':
-            logging.info(stdout)
+        # Create hooks skel
+        hooks = ['post-receive']
 
-        if ret != 0:
-            raise Exception("Git error.")
+        for hook in hooks:
+            # Create hook path.
+            hooks_path = os.path.join(repo.git_dir, 'hooks', hook + '.d')
 
-        self._create_hook_skel(name)
+            # Create directory.
+            os.mkdir(hooks_path, 0o750)
+            os.chown(hooks_path, os.geteuid(), os.getegid())
 
-        return name
+            #os.chown(hooks_path, self.owner, self.group)
+
+            hook_path = os.path.join(repo.git_dir, 'hooks', hook)
+
+            # Replace hook for a script that calls the internal hooks.
+            fd = open(hook_path, 'w')
+            fd.write("""
+cd ${0}.d
+while read oldrev newrev refname
+do
+  for i in $(find . -regex './[0-9][0-9][0-9]-.*')
+  do
+    echo '$oldrev $newrev $refname' | $i
+  done
+done
+""")
+            fd.close()
+
+        return repo
 
     def repo_delete(self, name):
-
         # Get repo path.
-        repo_path = os.path.join(self.repos_path, name)
+        repo_path = self._repo_path(name)
 
         if not os.path.exists(repo_path):
             raise Exception("Repo doesn't not exist.")
@@ -108,31 +142,22 @@ class Gitomatic(object):
 
         return name
 
-    def repo_archive(self, name, tree='HEAD'):
+    def repo_archive(self, name, treeish='HEAD'):
 
         # Get repo path.
-        repo_path = os.path.join(self.repos_path, name)
+        repo_path = self._repo_path(name)
 
-        if not os.path.exists(repo_path):
-            raise Exception("Repo doesn't not exist.")
+        # Get repo.
+        repo = git.Repo(repo_path)
 
-        # Create repo.
-        p = subprocess.Popen(['git', 'archive', '--format==zip', tree],
-                             cwd=repo_path, stdout=-1, stderr=-1)
-        ret = p.wait()
-        stdout, stderr = p.communicate()
+        # Create archive buffer
+        archive = StringIO.StringIO()
+        repo.archive(archive, treeish=treeish, format='zip')
+        archive.close()
 
-        if stderr != '':
-            logging.error(stderr)
-
-        if ret != 0:
-            raise Exception("Git error.")
-
-        return stdout
+        return ''.join(archive.buflist)
 
     def key_add(self, username, key):
-
-        # Test for Valid Key.
 
         # Get hash of the key.
         hash_ = sha1(key).hexdigest()
@@ -204,7 +229,7 @@ class Gitomatic(object):
 
         # Read authorized_keys
         try:
-            fd = open(self.authorized_path)
+            fd = open(os.path.join(self.ssh_path, 'authorized_keys'))
             authorized_keys = fd.read()
             fd.close()
         except IOError:
@@ -225,25 +250,28 @@ class Gitomatic(object):
             authorized_keys += "\n" + gitolite_section
 
         # Write authorized_keys
-        fd = open(self.authorized_path, 'w')
+        fd = open(os.path.join(self.ssh_path, 'authorized_keys'), 'w')
         os.fchmod(fd.fileno(), 0o600)
         fd.write(authorized_keys)
         fd.close()
 
     def perm_read(self, repo, username):
-        # Get conf path
-        conf_path = os.path.join(self.conf_path, repo)
+        # Get repo
+        repo = self._get_repo(repo)
 
-        # Read Configuration.
-        config = configobj.ConfigObj(conf_path)
+        # Configurations.
+        c = repo.config_reader()
 
-        if 'users' not in config:
-            config['users'] = {}
+        # Add permission section if it doesn't  exists.
+        if not c.has_section('permissions'):
+            return set()
 
-        if username in config['users']:
-            return set(config['users'][username])
-
-        return set()
+        # Add a permission.
+        try:
+            return set(c.get('permissions', 'username'))
+        except Exception, e:
+            logging.info(e)
+            return set()
 
     def validate_perm(self, perm):
         valid = self.valid_permissions[0]
@@ -260,24 +288,28 @@ class Gitomatic(object):
 
     def perm_write(self, repo, username, perm):
 
+        # Get repo
+        repo = self._get_repo(repo)
+
+        # Validate permission.
         perm = self.validate_perm(perm)
 
-        # Get conf path
-        conf_path = os.path.join(self.conf_path, repo)
+        # Configurations.
+        c = repo.config_writer()
 
-        # Read Configuration.
-        config = configobj.ConfigObj(conf_path)
+        # Add permission section if it doesn't  exists.
+        if not c.has_section('permissions'):
+            c.add_section('permissions')
 
-        # Write to file
-        if 'users' not in config:
-            config['users'] = {}
+        # Add a permission.
+        c.set('permissions', username, perm)
 
-        config['users'][username] = perm
-        config.write()
-
-        return set(config[username])
+        return c.get('permissions', username)
 
     def perm_add(self, username, repo, perm):
+        # Get repo
+        self._get_repo(repo)
+
         # Add a permission.
         actual = self.perm_read(repo, username)
 
