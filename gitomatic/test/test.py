@@ -2,6 +2,7 @@ import unittest
 from os import path, environ
 import shutil
 import tempfile
+from hashlib import sha1
 
 
 class GitomaticTestCase(unittest.TestCase):
@@ -57,9 +58,65 @@ class GitomaticTestCase(unittest.TestCase):
         # Initialize repo.
         self.gitomatic.initialize()
 
-        from hashlib import sha1
         key = 'ssh-rsa asasdav asda'
         hash_1 = sha1(key).hexdigest()
         hash_2 = self.gitomatic.key_add('test@test.com', key)
         self.assertEqual(hash_1, hash_2)
+        self.assertTrue(path.exists(path.join(
+            self._directory, '.gitomatic/keys/test@test.com:%s' % (hash_1, ))))
 
+    def test_delete_key(self):
+
+        # Initialize repo.
+        self.gitomatic.initialize()
+
+        key = 'ssh-rsa asasdav asda'
+        hash_ = self.gitomatic.key_add('test@test.com', key)
+        self.assertTrue(path.exists(path.join(
+            self._directory, '.gitomatic/keys/test@test.com:%s' % (hash_, ))))
+
+        self.gitomatic.key_delete('test@test.com', hash_)
+        self.assertTrue(not path.exists(path.join(
+            self._directory, '.gitomatic/keys/test@test.com:%s' % (hash_, ))))
+
+    def test_add_and_read_perm(self):
+
+        # Initialize repo.
+        self.gitomatic.initialize()
+        self.gitomatic.repo_add('test.git')
+        self.gitomatic.perm_add('test@test.com', 'test', 'R')
+
+        self.assertTrue(
+            'R' in self.gitomatic.perm_read('test@test.com', 'test'))
+
+        self.assertTrue(not
+            'W' in self.gitomatic.perm_read('test@test.com', 'test'))
+
+        self.gitomatic.perm_add('test@test.com', 'test', 'W')
+
+        self.assertTrue(
+            'R' in self.gitomatic.perm_read('test@test.com', 'test'))
+
+        self.assertTrue(
+            'W' in self.gitomatic.perm_read('test@test.com', 'test'))
+
+    def test_delete_perm(self):
+
+        # Initialize repo.
+        self.gitomatic.initialize()
+        self.gitomatic.repo_add('test.git')
+        self.gitomatic.perm_add('test@test.com', 'test', 'RW')
+
+        self.assertTrue(
+            'R' in self.gitomatic.perm_read('test@test.com', 'test'))
+
+        self.assertTrue(
+            'W' in self.gitomatic.perm_read('test@test.com', 'test'))
+
+        self.gitomatic.perm_delete('test@test.com', 'test', 'R')
+
+        self.assertTrue(not
+            'R' in self.gitomatic.perm_read('test@test.com', 'test'))
+
+        self.assertTrue(not
+            'W' in self.gitomatic.perm_read('test@test.com', 'test'))

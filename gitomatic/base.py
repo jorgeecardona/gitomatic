@@ -54,6 +54,12 @@ class Gitomatic(object):
         else:
             self.command = 'gitomatic-auth'
 
+        # Valid permissions
+        if 'permissions' in configuration['global']:
+            self.valid_permissions = configuration['global']['permissions']
+        else:
+            self.valid_permissions = ['', 'R', 'RW', 'RW+']
+
     def initialize(self):
         """
         Initialize all the system.
@@ -100,33 +106,7 @@ class Gitomatic(object):
         repo = git.Repo.init(repo_path, bare=True)
 
         # Create hooks skel
-        hooks = ['post-receive']
-
-        for hook in hooks:
-            # Create hook path.
-            hooks_path = os.path.join(repo.git_dir, 'hooks', hook + '.d')
-
-            # Create directory.
-            os.mkdir(hooks_path, 0o750)
-            os.chown(hooks_path, os.geteuid(), os.getegid())
-
-            #os.chown(hooks_path, self.owner, self.group)
-
-            hook_path = os.path.join(repo.git_dir, 'hooks', hook)
-
-            # Replace hook for a script that calls the internal hooks.
-            fd = open(hook_path, 'w')
-            fd.write("""
-cd ${0}.d
-while read oldrev newrev refname
-do
-  for i in $(find . -regex './[0-9][0-9][0-9]-.*')
-  do
-    echo '$oldrev $newrev $refname' | $i
-  done
-done
-""")
-            fd.close()
+        self._create_hook_skel(name)
 
         return repo
 
@@ -255,7 +235,7 @@ done
         fd.write(authorized_keys)
         fd.close()
 
-    def perm_read(self, repo, username):
+    def perm_read(self, username, repo):
         # Get repo
         repo = self._get_repo(repo)
 
@@ -268,12 +248,13 @@ done
 
         # Add a permission.
         try:
-            return set(c.get('permissions', 'username'))
+            return set(c.get('permissions', username))
         except Exception, e:
             logging.info(e)
             return set()
 
     def validate_perm(self, perm):
+
         valid = self.valid_permissions[0]
 
         # Valid permissions.
@@ -286,7 +267,7 @@ done
         # Return valid permission.
         return valid
 
-    def perm_write(self, repo, username, perm):
+    def perm_write(self, username, repo, perm):
 
         # Get repo
         repo = self._get_repo(repo)
@@ -307,35 +288,33 @@ done
         return c.get('permissions', username)
 
     def perm_add(self, username, repo, perm):
-        # Get repo
-        self._get_repo(repo)
 
         # Add a permission.
-        actual = self.perm_read(repo, username)
+        actual = self.perm_read(username, repo)
 
         # Compute new permissions
         new_perm = actual.union(set(perm))
 
         # Write new permission
-        self.perm_write(repo, username, new_perm)
+        self.perm_write(username, repo, new_perm)
 
         return username
 
     def perm_delete(self, username, repo, perm):
         # Add a permission.
-        actual = self.perm_read(repo, username)
+        actual = self.perm_read(username, repo)
 
         # Compute new permissions
         new_perm = actual - set(perm)
 
         # Write new permission
-        self.perm_write(repo, username, new_perm)
+        self.perm_write(username, repo, new_perm)
 
         return username
 
     def perm_check(self, username, repo, perm):
         # Read perm
-        real_perm = self.perm_read(repo, username)
+        real_perm = self.perm_read(username, repo)
 
         return set(perm).issubset(real_perm)
 
@@ -374,35 +353,35 @@ done
 
     def _create_hook_skel(self, name):
 
-        # Get repo path.
-        repo_path = os.path.join(self.repos_path, name)
+        # Get repo
+        repo = self._get_repo(name)
 
-        # Create hook skel.
-        hooks_path = os.path.join(repo_path, 'hooks')
+        # Hooks to create.
+        hooks = ['post-receive']
 
-        ## post-receive
-        for hook in ['post-receive']:
-            hook_path = os.path.join(hooks_path, 'post-receive')
-            hooks_path = os.path.join(hooks_path, 'post-receive.d')
-            if not os.path.exists(hooks_path):
-                print "Creating %s ..." % (hooks_path, )
-                os.mkdir(hooks_path, 0o750)
-                os.chown(hooks_path, os.geteuid(), os.getegid())
+        for hook in hooks:
+            # Create hook path.
+            hooks_path = os.path.join(repo.git_dir, 'hooks', hook + '.d')
 
-            # Create base hook.
+            # Create directory.
+            os.mkdir(hooks_path, 0o750)
+            os.chown(hooks_path, os.geteuid(), os.getegid())
+            #os.chown(hooks_path, self.owner, self.group)
+
+            hook_path = os.path.join(repo.git_dir, 'hooks', hook)
+
+            # Replace hook for a script that calls the internal hooks.
             fd = open(hook_path, 'w')
-            fd.write(self._hook_content())
-            os.fchmod(fd.fileno(), 0o750)
-            fd.close()
-
-    def _hook_content(self):
-        return """
+            fd.write("""
 cd ${0}.d
 while read oldrev newrev refname
 do
   for i in $(find . -regex './[0-9][0-9][0-9]-.*')
   do
-    echo $oldrev $newrev $refname | $i
+    echo '$oldrev $newrev $refname' | $i
   done
 done
-"""
+""")
+            fd.close()
+
+        return repo
