@@ -388,6 +388,7 @@ do
   done
 done
 """)
+            os.fchmod(fd.fileno(), 0o750)
             fd.close()
 
         return repo
