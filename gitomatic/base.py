@@ -325,7 +325,7 @@ class Gitomatic(object):
 
         # Add hook in order.
         hook_path = os.path.join(
-            self.repos_path, repo, 'hooks', '%s.d' % (type, ), '%03d-%s' % (
+            self.repositories_path, repo, 'hooks', '%s.d' % (type, ), '%03d-%s' % (
                 order, name))
 
         # Create file
@@ -343,8 +343,8 @@ class Gitomatic(object):
 
         # Add hook in order.
         hook_path = os.path.join(
-            self.repos_path, repo, 'hooks', '%s.d' % (type, ), '%03d-%s' % (
-                order, name))
+            self.repositories_path, repo, 'hooks', '%s.d' % (type, ),
+            '%03d-%s' % (order, name))
 
         # Delete hook
         os.remove(hook_path)
