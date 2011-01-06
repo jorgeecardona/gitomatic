@@ -7,14 +7,16 @@ from base import Gitomatic
 
 
 def upload_pack(repo):
-    repo_path = os.path.join('~/.gitomatic/repos', repo)
-    p = subprocess.Popen(['/usr/bin/git-upload-pack', repo_path])
+    g = Gitomatic()
+    repo = g._get_repo(repo)
+    p = subprocess.Popen(['/usr/bin/git-upload-pack', repo.git_dir])
     return p.wait()
 
 
 def receive_pack(repo):
-    repo_path = os.path.join('~/.gitomatic/repos', repo)
-    p = subprocess.Popen(['/usr/bin/git-receive-pack', repo_path])
+    g = Gitomatic()
+    repo = g._get_repo(repo)
+    p = subprocess.Popen(['/usr/bin/git-receive-pack', repo.git_dir])
     return p.wait()
 
 
@@ -25,9 +27,6 @@ def main():
         description="Git auth tool.")
     parser.add_argument('username')
     args = parser.parse_args()
-
-    # Get Gitomatic object.
-    g = Gitomatic()
 
     # Get ids
     username = args.username
