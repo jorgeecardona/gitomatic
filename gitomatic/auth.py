@@ -47,6 +47,9 @@ def main():
 
         }
 
+    # Get Gitomatic object.
+    g = Gitomatic()
+
     for regex in commands_regex:
         res = regex.match(command)
         if res:

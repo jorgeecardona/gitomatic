@@ -248,7 +248,7 @@ class Gitomatic(object):
 
         # Add a permission.
         try:
-            return set(c.get('permissions', username))
+            return set(c.get('permissions', sha1(username).hexdigest()))
         except Exception, e:
             logging.info(e)
             return set()
@@ -283,9 +283,9 @@ class Gitomatic(object):
             c.add_section('permissions')
 
         # Add a permission.
-        c.set('permissions', username, perm)
+        c.set('permissions', sha1(username).hexdigest(), perm)
 
-        return c.get('permissions', username)
+        return c.get('permissions', sha1(username).hexdigest())
 
     def perm_add(self, username, repo, perm):
 
