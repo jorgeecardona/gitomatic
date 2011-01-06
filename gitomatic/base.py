@@ -384,7 +384,7 @@ while read oldrev newrev refname
 do
   for i in $(find . -regex './[0-9][0-9][0-9]-.*')
   do
-    echo '$oldrev $newrev $refname' | $i
+    echo "$oldrev $newrev $refname" | $i
   done
 done
 """)
