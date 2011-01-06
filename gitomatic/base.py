@@ -364,7 +364,8 @@ class Gitomatic(object):
             hooks_path = os.path.join(repo.git_dir, 'hooks', hook + '.d')
 
             # Create directory.
-            os.mkdir(hooks_path, 0o750)
+            if not os.path.exists(hooks_path):
+                os.mkdir(hooks_path, 0o750)
             os.chown(hooks_path, os.geteuid(), os.getegid())
             #os.chown(hooks_path, self.owner, self.group)
 
