@@ -1,39 +1,54 @@
-== Gitomatic
+# Gitomatic
 
 Gitomatic is a tool to easy control a git repository in a single account with multiples repositories.
 
 It has a basic access control, controled from a command tool called with gitomatic.
 
 
-Example:
+## Example:
 
-gitomatic init
-gitomatic add_repo test.git
-gitomatic add_key -f /tmp/id_rsa.pub username
-gitomatic add_perm username test.git R
-
-...
-
-git clone git@server:test.git OK
-git push origin master FAILED
-git pull origin master OK
+    $ gitomatic init
+    $ gitomatic add_repo test.git
+    $ gitomatic add_key -f /tmp/id_rsa.pub username
+    $ gitomatic add_perm username test.git R
 
 ...
 
-gitomatic add_perm username test.git W
+    $ git clone git@server:test.git
+    OK
+
+    $ git push origin master
+    FAILED
+
+    $ git pull origin master
+    OK
 
 ...
 
-git clone git@server:test.git OK
-git push origin master OK
-git pull origin master OK
+    $ gitomatic add_perm username test.git W
 
 ...
 
-gitomatic remove_perm username test.git R
+    $ git clone git@server:test.git
+    OK
+
+    $ git push origin master
+    OK
+
+    $ git pull origin master
+    OK
 
 ...
 
-git clone git@server:test.git FAIL
-git push origin master FAIL
-git pull origin master FAIL
+    $ gitomatic remove_perm username test.git R
+
+...
+
+    $ git clone git@server:test.git
+    FAIL
+
+    $ git push origin master
+    FAIL
+
+    $ git pull origin master
+    FAIL
