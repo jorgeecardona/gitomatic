@@ -323,9 +323,12 @@ class Gitomatic(object):
         # Create hook structure.
         self._create_hook_skel(repo)
 
+        # Get repo
+        repo = self._get_repo(repo)
+
         # Add hook in order.
         hook_path = os.path.join(
-            self.repositories_path, repo, 'hooks', '%s.d' % (type, ), '%03d-%s' % (
+            repo.git_dir, 'hooks', '%s.d' % (type, ), '%03d-%s' % (
                 order, name))
 
         # Create file
