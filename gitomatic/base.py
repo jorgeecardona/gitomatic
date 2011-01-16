@@ -6,8 +6,6 @@ import git
 import re
 import os
 import StringIO
-import datetime
-import time
 
 
 class Gitomatic(object):
@@ -106,14 +104,7 @@ class Gitomatic(object):
 
         # Check if path exists.
         if os.path.exists(repo_path):
-            t = datetime.datetime.now()
-            t = time.mktime(t.timetuple())
-            # Rename old repo with datetime.
-            new_repo_path = '%s_%d' % (repo_path, t)
-            logging.error(
-                'Repository %s exists at %s, moving old directory to: %s.' % (
-                    name, repo_path, new_repo_path))
-            os.rename(repo_path, new_repo_path)
+            raise Exception("The directory of the repo is already used.")
 
         # Create repo
         repo = git.Repo.init(repo_path, bare=True)
