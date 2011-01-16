@@ -6,6 +6,8 @@ import git
 import re
 import os
 import StringIO
+import datetime
+import time
 
 
 class Gitomatic(object):
@@ -101,6 +103,17 @@ class Gitomatic(object):
 
         # Get repo location
         repo_path = self._repo_path(name)
+
+        # Check if path exists.
+        if os.path.exists(repo_path):
+            t = datetime.datetime.now()
+            t = time.mktime(t.timetuple())
+            # Rename old repo with datetime.
+            new_repo_path = '%s_%d' % (repo_path, t)
+            logging.error(
+                'Repository %s exists at %s, moving old directory to: %s.' % (
+                    name, repo_path, new_repo_path))
+            os.rename(repo_path, new_repo_path)
 
         # Create repo
         repo = git.Repo.init(repo_path, bare=True)
@@ -382,7 +395,7 @@ class Gitomatic(object):
 cd ${0}.d
 while read oldrev newrev refname
 do
-  for i in $(find . -regex './[0-9][0-9][0-9]-.*')
+  for i in $(find . -regex './[0-9][0-9][0-9]-.*[^~]')
   do
     echo "$oldrev $newrev $refname" | $i
   done
