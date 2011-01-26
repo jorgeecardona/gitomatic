@@ -68,25 +68,25 @@ class Gitomatic(object):
         # Create .ssh path.
         if not os.path.exists(self.ssh_path):
             print "Creating %s ..." % (self.ssh_path, )
-            os.mkdir(self.ssh_path, 0o700)
+            os.mkdir(self.ssh_path, 0700)
             os.chown(self.ssh_path, os.geteuid(), os.getegid())
 
         # Create gitomatic path.
         if not os.path.exists(self.gitomatic_path):
             print "Creating %s ..." % (self.gitomatic_path, )
-            os.mkdir(self.gitomatic_path, 0o750)
+            os.mkdir(self.gitomatic_path, 0750)
             os.chown(self.gitomatic_path, os.geteuid(), os.getegid())
 
         # Create gitomatic keys path.
         if not os.path.exists(self.keys_path):
             print "Creating %s ..." % (self.keys_path, )
-            os.mkdir(self.keys_path, 0o750)
+            os.mkdir(self.keys_path, 0750)
             os.chown(self.keys_path, os.geteuid(), os.getegid())
 
         # Create gitomatic repos path.
         if not os.path.exists(self.repositories_path):
             print "Creating %s ..." % (self.repositories_path, )
-            os.mkdir(self.repositories_path, 0o750)
+            os.mkdir(self.repositories_path, 0750)
             os.chown(self.repositories_path, os.geteuid(), os.getegid())
 
     def _repo_path(self, name):
@@ -235,7 +235,7 @@ class Gitomatic(object):
 
         # Write authorized_keys
         fd = open(os.path.join(self.ssh_path, 'authorized_keys'), 'w')
-        os.fchmod(fd.fileno(), 0o600)
+        os.fchmod(fd.fileno(), 0600)
         fd.write(authorized_keys)
         fd.close()
 
@@ -340,7 +340,7 @@ class Gitomatic(object):
         # Create file
         fd = open(hook_path, 'w')
         fd.write(hook)
-        os.fchmod(fd.fileno(), 0o750)
+        os.fchmod(fd.fileno(), 0750)
         fd.close()
 
         return hook_path
@@ -374,7 +374,7 @@ class Gitomatic(object):
 
             # Create directory.
             if not os.path.exists(hooks_path):
-                os.mkdir(hooks_path, 0o750)
+                os.mkdir(hooks_path, 0750)
             os.chown(hooks_path, os.geteuid(), os.getegid())
             #os.chown(hooks_path, self.owner, self.group)
 
@@ -392,7 +392,7 @@ do
   done
 done
 """)
-            os.fchmod(fd.fileno(), 0o750)
+            os.fchmod(fd.fileno(), 0750)
             fd.close()
 
         return repo
