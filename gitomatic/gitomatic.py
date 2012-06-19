@@ -272,8 +272,8 @@ class Gitomatic(GitomaticBase):
         # Basic structure.
         self.repository = GitomaticRepository(conf=self.conf)
         self.keys = GitomaticKeys(conf=self.conf)
-        self.permission = GitomaticPermissions(conf=self.conf)
-        self.hook = GitomaticHooks(conf=self.conf)
+        self.permissions = GitomaticPermissions(conf=self.conf)
+        self.hooks = GitomaticHooks(conf=self.conf)
 
     def _create_directory(self, path, mode):
         print "Creating %s ..." % (path, )
