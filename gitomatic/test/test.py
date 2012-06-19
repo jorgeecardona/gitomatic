@@ -12,7 +12,7 @@ class GitomaticTestCase(unittest.TestCase):
         # Change home path for a temporary one.
         self._directory = tempfile.mkdtemp()
         environ['HOME'] = self._directory
-        from gitomatic.base import Gitomatic
+        from gitomatic import Gitomatic
         self.gitomatic = Gitomatic()
 
     def tearDown(self):
@@ -35,7 +35,7 @@ class GitomaticTestCase(unittest.TestCase):
     def test_add_repo(self):
 
         self.gitomatic.initialize()
-        self.gitomatic.repo_add('test.git')
+        self.gitomatic.repository.create('test.git')
 
         self.assertTrue(path.exists(path.join(
             self._directory, '.gitomatic/repositories/test.git')))
@@ -44,12 +44,12 @@ class GitomaticTestCase(unittest.TestCase):
 
         # Add repo
         self.gitomatic.initialize()
-        self.gitomatic.repo_add('test.git')
+        self.gitomatic.repository.create('test.git')
         self.assertTrue(path.exists(path.join(
             self._directory, '.gitomatic/repositories/test.git')))
 
         # Delete repo
-        self.gitomatic.repo_delete('test.git')
+        self.gitomatic.repository.delete('test.git')
         self.assertTrue(not path.exists(path.join(
             self._directory, '.gitomatic/repositories/test.git')))
 
@@ -60,7 +60,7 @@ class GitomaticTestCase(unittest.TestCase):
 
         key = 'ssh-rsa asasdav asda'
         hash_1 = sha1(key).hexdigest()
-        hash_2 = self.gitomatic.key_add('test@test.com', key)
+        hash_2 = self.gitomatic.keys.add('test@test.com', key)
         self.assertEqual(hash_1, hash_2)
         self.assertTrue(path.exists(path.join(
             self._directory, '.gitomatic/keys/test@test.com:%s' % (hash_1, ))))
@@ -71,11 +71,11 @@ class GitomaticTestCase(unittest.TestCase):
         self.gitomatic.initialize()
 
         key = 'ssh-rsa asasdav asda'
-        hash_ = self.gitomatic.key_add('test@test.com', key)
+        hash_ = self.gitomatic.keys.add('test@test.com', key)
         self.assertTrue(path.exists(path.join(
             self._directory, '.gitomatic/keys/test@test.com:%s' % (hash_, ))))
 
-        self.gitomatic.key_delete('test@test.com', hash_)
+        self.gitomatic.keys.delete('test@test.com', hash_)
         self.assertTrue(not path.exists(path.join(
             self._directory, '.gitomatic/keys/test@test.com:%s' % (hash_, ))))
 
@@ -83,40 +83,40 @@ class GitomaticTestCase(unittest.TestCase):
 
         # Initialize repo.
         self.gitomatic.initialize()
-        self.gitomatic.repo_add('test.git')
-        self.gitomatic.perm_add('test@test.com', 'test', 'R')
+        self.gitomatic.repositoriy.create('test.git')
+        self.gitomatic.permission.add('test@test.com', 'test', 'R')
 
         self.assertTrue(
-            'R' in self.gitomatic.perm_read('test@test.com', 'test'))
+            'R' in self.gitomatic.permission.get('test@test.com', 'test'))
 
         self.assertTrue(not
-            'W' in self.gitomatic.perm_read('test@test.com', 'test'))
+            'W' in self.gitomatic.permission.get('test@test.com', 'test'))
 
-        self.gitomatic.perm_add('test@test.com', 'test', 'W')
-
-        self.assertTrue(
-            'R' in self.gitomatic.perm_read('test@test.com', 'test'))
+        self.gitomatic.permission.add('test@test.com', 'test', 'W')
 
         self.assertTrue(
-            'W' in self.gitomatic.perm_read('test@test.com', 'test'))
+            'R' in self.gitomatic.permission.get('test@test.com', 'test'))
+
+        self.assertTrue(
+            'W' in self.gitomatic.permission.get('test@test.com', 'test'))
 
     def test_delete_perm(self):
 
         # Initialize repo.
         self.gitomatic.initialize()
-        self.gitomatic.repo_add('test.git')
-        self.gitomatic.perm_add('test@test.com', 'test', 'RW')
+        self.gitomatic.repositoriy.add('test.git')
+        self.gitomatic.permission.add('test@test.com', 'test', 'RW')
 
         self.assertTrue(
-            'R' in self.gitomatic.perm_read('test@test.com', 'test'))
+            'R' in self.gitomatic.permission.get('test@test.com', 'test'))
 
         self.assertTrue(
-            'W' in self.gitomatic.perm_read('test@test.com', 'test'))
+            'W' in self.gitomatic.permission.get('test@test.com', 'test'))
 
-        self.gitomatic.perm_delete('test@test.com', 'test', 'R')
-
-        self.assertTrue(not
-            'R' in self.gitomatic.perm_read('test@test.com', 'test'))
+        self.gitomatic.permission.remove('test@test.com', 'test', 'R')
 
         self.assertTrue(not
-            'W' in self.gitomatic.perm_read('test@test.com', 'test'))
+            'R' in self.gitomatic.permission.get('test@test.com', 'test'))
+
+        self.assertTrue(not
+            'W' in self.gitomatic.permission.get('test@test.com', 'test'))

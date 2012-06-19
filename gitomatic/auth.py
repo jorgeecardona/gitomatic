@@ -3,19 +3,24 @@ import logging
 import os
 import re
 import subprocess
-from base import Gitomatic
+from .gitomatic import Gitomatic
 
 
 def upload_pack(repo):
+    " Upload pack command. "
+
+    # Gitomatic object.
     g = Gitomatic()
-    repo = g._get_repo(repo)
+
+    # Get a repo from its name.
+    repo = g.repository.get(repo)
     p = subprocess.Popen(['/usr/bin/git-upload-pack', repo.git_dir])
     return p.wait()
 
 
 def receive_pack(repo):
     g = Gitomatic()
-    repo = g._get_repo(repo)
+    repo = g.repository.get(repo)
     p = subprocess.Popen(['/usr/bin/git-receive-pack', repo.git_dir])
     return p.wait()
 
@@ -60,7 +65,7 @@ def main():
             repo = res.groupdict()['repo']
 
             # Check permission
-            check = g.perm_check(username, repo, perm)
+            check = g.permission.check(username, repo, perm)
 
             # Call handler if check
             if check:

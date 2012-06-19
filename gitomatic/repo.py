@@ -1,4 +1,3 @@
-import logging
 import os
 import git
 
@@ -7,7 +6,9 @@ class Repo(git.Repo):
 
     @classmethod
     def init(self, path, mkdir=True, **kwargs):
-        # Create repository in bare format.
+        " Create a new repository in bare format."
+
+        # Force bare format.
         kwargs['bare'] = True
 
         # Init repo.
@@ -16,8 +17,9 @@ class Repo(git.Repo):
         # Create hook structures.
         repo._create_hook_structure()
 
-
     def _create_hook_structure(self):
+        " Create a predefined hook structure."
+
         # For every hook create a hook.d path.
         hooks = ['post-receive']
 
@@ -30,16 +32,12 @@ class Repo(git.Repo):
 
             hook_path = os.path.join(self.git_dir, 'hooks', hook)
 
+            # Read the content of the hook.
+            fd = open(os.path.join(__file__, 'hook.sh'))
+            hook = fd.read()
+            fd.close()
+
             # Replace hook for a script that calls the internal hooks.
             fd = open(hook_path, 'w')
-            fd.write("""
-cd ${0}.d
-while read oldrev newrev refname
-do
-  for i in $(find . -regex './[0-9][0-9][0-9]-.*')
-  do
-    echo '$oldrev $newrev $refname' | $i
-  done
-done
-""")
+            fd.write(hook)
             fd.close()
