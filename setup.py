@@ -2,13 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='gitomatic',
-    version='1.0a1',
+    version='1.0a3',
     description='Git management tool',
     author='Jorge Eduardo Cardona',
     author_email='jorge.cardona@nuagehq.com',
     license="BSD",
     keywords="git",
-    url="http://pypi.python.org/pypi/gitomatic/",
+    url="https://github.com/jorgeecardona/gitomatic",
     packages=find_packages(),
     test_suite='test',
     entry_points={
