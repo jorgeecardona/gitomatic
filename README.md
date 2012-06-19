@@ -15,10 +15,10 @@ Gitomatic creates a directory '.gitomatic' in the home path of the user that run
 In this examples I assume you have a user 'git', and you have the public rsa key of the user username (which is not a user of the system, just an user of the repository) in /tmp/id_rsa.pub.
 
 
-    $ gitomatic init
-    $ gitomatic add_repo test.git
-    $ gitomatic add_key -f /tmp/id_rsa.pub username
-    $ gitomatic add_perm username test.git R
+    $ gitomatic initialize
+    $ gitomatic repository create test.git
+    $ gitomatic keys add -f /tmp/id_rsa.pub username
+    $ gitomatic permission add username -r test.git R
 
 ...
 
@@ -33,7 +33,7 @@ In this examples I assume you have a user 'git', and you have the public rsa key
 
 ...
 
-    $ gitomatic add_perm username test.git W
+    $ gitomatic permission add -r test.git username W
 
 ...
 
@@ -48,7 +48,7 @@ In this examples I assume you have a user 'git', and you have the public rsa key
 
 ...
 
-    $ gitomatic remove_perm username test.git R
+    $ gitomatic permission remove -r test.git username R
 
 ...
 
@@ -60,3 +60,13 @@ In this examples I assume you have a user 'git', and you have the public rsa key
 
     $ git pull origin master
     FAIL
+
+You can use gitomatic from a python code like this:
+
+    from gitomatic import Gitomatic
+    
+    g = Gitomatic()
+    g.initialize()
+    g.repository.create('test')
+    g.permission.add('username', 'test', 'RW')
+    g.keys.add('username', 'ssh-rsa xxxxx')
