@@ -18,7 +18,7 @@ In this examples I assume you have a user 'git', and you have the public rsa key
     $ gitomatic initialize
     $ gitomatic repository create test.git
     $ gitomatic keys add -f /tmp/id_rsa.pub username
-    $ gitomatic permission add username -r test.git R
+    $ gitomatic permissions add username -r test.git R
 
 ...
 
@@ -33,7 +33,7 @@ In this examples I assume you have a user 'git', and you have the public rsa key
 
 ...
 
-    $ gitomatic permission add -r test.git username W
+    $ gitomatic permissions add -r test.git username W
 
 ...
 
@@ -48,7 +48,7 @@ In this examples I assume you have a user 'git', and you have the public rsa key
 
 ...
 
-    $ gitomatic permission remove -r test.git username R
+    $ gitomatic permissions remove -r test.git username R
 
 ...
 
@@ -68,5 +68,5 @@ You can use gitomatic from a python code like this:
     g = Gitomatic()
     g.initialize()
     g.repository.create('test')
-    g.permission.add('username', 'test', 'RW')
+    g.permissions.add('username', 'test', 'RW')
     g.keys.add('username', 'ssh-rsa xxxxx')

@@ -13,7 +13,7 @@ class GitomaticBase(object):
         self.conf = conf
 
 
-class GitomaticPermission(GitomaticBase):
+class GitomaticPermissions(GitomaticBase):
 
     def check(self, username, repository, perm):
 
@@ -234,7 +234,7 @@ class GitomaticKeys(GitomaticBase):
             fd.write(authorized_keys)
 
 
-class GitomaticHook(GitomaticBase):
+class GitomaticHooks(GitomaticBase):
     " Hook commands."
 
     def add(self, repository, hook, content):
@@ -272,8 +272,8 @@ class Gitomatic(GitomaticBase):
         # Basic structure.
         self.repository = GitomaticRepository(conf=self.conf)
         self.keys = GitomaticKeys(conf=self.conf)
-        self.permission = GitomaticPermission(conf=self.conf)
-        self.hook = GitomaticHook(conf=self.conf)
+        self.permission = GitomaticPermissions(conf=self.conf)
+        self.hook = GitomaticHooks(conf=self.conf)
 
     def _create_directory(self, path, mode):
         print "Creating %s ..." % (path, )

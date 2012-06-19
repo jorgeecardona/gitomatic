@@ -102,13 +102,13 @@ class KeysCommands(BaseCommands):
         return self.gitomatic.keys.remove(args.username, args.key_hash)
 
 
-class PermissionCommands(BaseCommands):
-    " Permission commands."
+class PermissionsCommands(BaseCommands):
+    " Permissions commands."
 
     def _add_to_parser(self, commands):
 
         # Create subcommands.
-        subcommands = commands.add_parser('permission').add_subparsers(
+        subcommands = commands.add_parser('permissions').add_subparsers(
             title='Add and remove permissions.')
 
         # Add basic subcommands.
@@ -134,12 +134,12 @@ class PermissionCommands(BaseCommands):
             args.username, args.repository, args.perm)
 
 
-class HookCommands(BaseCommands):
+class HooksCommands(BaseCommands):
 
     def _add_to_parser(self, commands):
 
         # Create subcommands.
-        subcommands = commands.add_parser('hook').add_subparsers(
+        subcommands = commands.add_parser('hooks').add_subparsers(
             title='Add and remove hooks')
 
         # Add basic subcommands.

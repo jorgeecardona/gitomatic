@@ -3,8 +3,8 @@ import argparse
 from commands import RepositoryCommands
 from commands import KeysCommands
 from commands import InitCommands
-from commands import PermissionCommands
-from commands import HookCommands
+from commands import PermissionsCommands
+from commands import HooksCommands
 
 
 def main():
@@ -52,8 +52,8 @@ def main():
     RepositoryCommands()._add_to_parser(commands)
     KeysCommands()._add_to_parser(commands)
     InitCommands()._add_to_parser(commands)
-    PermissionCommands()._add_to_parser(commands)
-    HookCommands()._add_to_parser(commands)
+    PermissionsCommands()._add_to_parser(commands)
+    HooksCommands()._add_to_parser(commands)
 
     args = parser.parse_args()
     args.func(args)
