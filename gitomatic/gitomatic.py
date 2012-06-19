@@ -140,6 +140,9 @@ class GitomaticRepository(GitomaticBase):
 
         return name
 
+    def archive(self, name, ostream, **kwargs):
+        return self.get(name).archive(ostream, **kwargs)
+
 
 class GitomaticKeys(GitomaticBase):
 

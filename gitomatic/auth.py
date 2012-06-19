@@ -65,7 +65,7 @@ def main():
             repo = res.groupdict()['repo']
 
             # Check permission
-            check = g.permission.check(username, repo, perm)
+            check = g.permissions.check(username, repo, perm)
 
             # Call handler if check
             if check:

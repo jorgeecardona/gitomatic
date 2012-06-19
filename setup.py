@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='gitomatic',
-    version='1.0a3',
+    version='1.0a5',
     description='Git management tool',
     author='Jorge Eduardo Cardona',
     author_email='jorge.cardona@nuagehq.com',
