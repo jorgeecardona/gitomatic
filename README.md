@@ -1,6 +1,6 @@
 # Gitomatic
 
-[![Build Status](https://travis-ci.org/[jorgeecardona]/[gitomatic].png)](https://travis-ci.org/[jorgeecardona]/[gitomatic])
+[![Build Status](https://travis-ci.org/jorgeecardona/gitomatic.png)](https://travis-ci.org/jorgeecardona/gitomatic)
 
 Gitomatic is a tool to easy control a git repository in a single account with multiples repositories.
 
