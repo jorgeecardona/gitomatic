@@ -24,10 +24,10 @@ setup(
         ],
     install_requires=[
         'distribute',
-        'argparse==1.2.1',
-        'GitPython==0.3.2.RC1',
+        'argparse>=1.2.1',
+        'GitPython>=0.3.2.RC1',
         ],
     setup_requires=[
-        'mock==0.8.0'
+        'mock>=0.8.0'
         ]
     )
