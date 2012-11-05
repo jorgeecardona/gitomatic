@@ -241,8 +241,9 @@ class GitomaticHooks(GitomaticBase):
     " Hook commands."
 
     def add(self, repository, hook, content):
+        " Add a new hook to this repo."
 
-        # Add hook in order.
+        # Filename of the hook.
         hook_path = self.conf.hook_path(repository, hook)
 
         # Create file
@@ -253,6 +254,7 @@ class GitomaticHooks(GitomaticBase):
         return hook_path
 
     def remove(self, repository, hook):
+        " Remove the hook."
 
         # Add hook in order.
         hook_path = self.conf.hook_path(repository, hook)

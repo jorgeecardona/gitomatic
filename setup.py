@@ -2,15 +2,15 @@ from setuptools import setup, find_packages
 
 setup(
     name='gitomatic',
-    version='1.0a5',
+    version='1.1.0',
     description='Git management tool',
     author='Jorge Eduardo Cardona',
     author_email='jorge.cardona@nuagehq.com',
     license="BSD",
     keywords="git",
     url="https://github.com/jorgeecardona/gitomatic",
-    packages=find_packages(),
-    test_suite='test',
+    packages=['gitomatic'],
+    test_suite='tests',
     entry_points={
         'console_scripts': [
             'gitomatic = gitomatic.main:main',
@@ -23,7 +23,7 @@ setup(
         "License :: OSI Approved :: BSD License",
         ],
     install_requires=[
-        'configobj==4.7.2',
+        'distribute',
         'argparse==1.2.1',
         'GitPython==0.3.2.RC1',
         ],
